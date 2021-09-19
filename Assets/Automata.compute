@@ -32,18 +32,25 @@ void ElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
     uint right = _Result[uint2(texCoords.x + 1, texCoords.y + 1)].a;
     float4 result = 1.0f;
 
-    if (left == previous && previous == right)
-        result = 0;
-    else if (left == 1 && previous == 0 && right == 0)
-        result = 0;
+    float3 red = float3(0.972f, 0.647f, 0.803f);
+    float3 blue = float3(0.666f, 0.647f, 0.972f);
+    float3 green = float3(0.647f, 0.972f, 0.694f);
+
+    if (left == 1 && previous == 1 && right == 0)
+        result.rgb = red * green;
+    else if (left == 1 && previous == 0 && right == 1)
+        result.rgb = red * blue;
     else if (left == 0 && previous == 1 && right == 0)
-        result = float4(0.0f, 0.8f, 0.0f, 1.0f);
-    else if (left == 1 && previous == 1 && right == 0)
-        result = float4(0.8f, 0.0f, 0.0f, 1.0f);
+        result.rgb = green * blue;
+    else if (left == 0 && previous == 1 && right == 0)
+        result.rgb = green;
     else if (left == 0 && previous == 0 && right == 1)
-        result = float4(0.0f, 0.0f, 0.8f, 1.0f);
-    else
-        result = float4(0.8f, 0.8f, 0.8f, 1.0f);
+        result.rgb = red;
+    
+    if (left == previous && previous == right)
+        result = float4(0.145f, 0.098f, 0.160f, 0.0f);
+    else if (left == 1 && previous == 0 && right == 0)
+        result = 0.0f;
 
 
     _Result[texCoords.xy] = result;
