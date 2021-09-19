@@ -9,10 +9,13 @@ public class Automata : MonoBehaviour {
     [Range(0.01f, 1.0f)]
     public float seedChance = 0.5f;
 
+    public bool capturing = false;
+
     private RenderTexture target;
     private int kernel, threadGroupsX, threadGroupsY, generation;
     private int width, height;
-    
+    private float timer;
+
     void Awake() {
         threadGroupsX = Mathf.CeilToInt(Screen.width / 8.0f);
         threadGroupsY = Mathf.CeilToInt(Screen.height / 8.0f);
@@ -31,6 +34,7 @@ public class Automata : MonoBehaviour {
         }
 
         generation = height - 2;
+        timer = 0.0f;
         automataCompute.SetTexture(0, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
@@ -51,8 +55,17 @@ public class Automata : MonoBehaviour {
         automataCompute.SetInt("_Generation", generation);
         automataCompute.Dispatch(1, threadGroupsX, 1, 1);
 
-        if (generation > 0)
+        if (timer > 0.01 && generation > 0) {
+            timer = 0;
             generation--;
+        }
+
+        if (timer > 1) {
+            capturing = false;
+            Debug.Log("Finished Capture");
+        }
+
+        timer += Time.deltaTime;
     }
 
     void OnRenderImage(RenderTexture source, RenderTexture destination) {

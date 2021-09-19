@@ -18,8 +18,8 @@ void SeedElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
 
     if (_RandomSeed)
         result = randValue() < _SeedChance ? 1 : 0;
-    else
-        result = id.x == (_Width - 1) ? 1 : 0;
+    
+    result = id.x == (_Width - 1) ? 1 : result;
 
     _Result[texCoords.xy] = result;
 }
@@ -27,15 +27,24 @@ void SeedElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
 [numthreads(8,1,1)]
 void ElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
     uint2 texCoords = uint2(id.x, _Generation);
-    uint previous = _Result[uint2(texCoords.x, texCoords.y + 1)].r;
-    uint left = _Result[uint2(texCoords.x - 1, texCoords.y + 1)].r;
-    uint right = _Result[uint2(texCoords.x + 1, texCoords.y + 1)].r;
-    uint result = 1;
+    uint previous = _Result[uint2(texCoords.x, texCoords.y + 1)].a;
+    uint left = _Result[uint2(texCoords.x - 1, texCoords.y + 1)].a;
+    uint right = _Result[uint2(texCoords.x + 1, texCoords.y + 1)].a;
+    float4 result = 1.0f;
 
     if (left == previous && previous == right)
         result = 0;
     else if (left == 1 && previous == 0 && right == 0)
         result = 0;
+    else if (left == 0 && previous == 1 && right == 0)
+        result = float4(0.0f, 0.8f, 0.0f, 1.0f);
+    else if (left == 1 && previous == 1 && right == 0)
+        result = float4(0.8f, 0.0f, 0.0f, 1.0f);
+    else if (left == 0 && previous == 0 && right == 1)
+        result = float4(0.0f, 0.0f, 0.8f, 1.0f);
+    else
+        result = float4(0.8f, 0.8f, 0.8f, 1.0f);
+
 
     _Result[texCoords.xy] = result;
 }
