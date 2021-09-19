@@ -6,6 +6,8 @@ public class Automata : MonoBehaviour {
     
     public ComputeShader automataCompute;
     public bool randomSeed = false;
+    [Range(0.01f, 1.0f)]
+    public float seedChance = 0.5f;
 
     private RenderTexture target;
     private int kernel, threadGroupsX, threadGroupsY, generation;
@@ -29,6 +31,8 @@ public class Automata : MonoBehaviour {
         automataCompute.SetTexture(0, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
+        automataCompute.SetFloat("_SeedChance", seedChance);
+        automataCompute.SetInt("_RandSeed", Random.Range(2, 1000));
         automataCompute.Dispatch(0, threadGroupsX, 1, 1);
     }
 
