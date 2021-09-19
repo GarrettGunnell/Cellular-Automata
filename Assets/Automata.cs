@@ -13,7 +13,7 @@ public class Automata : MonoBehaviour {
 
     private RenderTexture target;
     private int kernel, threadGroupsX, threadGroupsY, generation;
-    private int width, height;
+    private int width, height, frameCount;
     private float timer;
 
     void Awake() {
@@ -58,17 +58,38 @@ public class Automata : MonoBehaviour {
         if (timer > 0.01 && generation > 0) {
             timer = 0;
             generation--;
+            Capture();
         }
 
-        if (timer > 1) {
+        if (generation <= 0)
+            Capture();
+            
+        if (timer > 1 && capturing) {
             capturing = false;
             Debug.Log("Finished Capture");
         }
 
         timer += Time.deltaTime;
+        frameCount++;
     }
 
     void OnRenderImage(RenderTexture source, RenderTexture destination) {
         Graphics.Blit(target, destination);
+    }
+
+    private void Capture() {
+        if (capturing) {
+            RenderTexture rt = new RenderTexture(width, height, 24);
+            GetComponent<Camera>().targetTexture = rt;
+            Texture2D screenshot = new Texture2D(506, 506, TextureFormat.RGB24, false);
+            GetComponent<Camera>().Render();
+            RenderTexture.active = rt;
+            screenshot.ReadPixels(new Rect(0, 0, 506, 506), 0, 0);
+            GetComponent<Camera>().targetTexture = null;
+            RenderTexture.active = null;
+            Destroy(rt);
+            string filename = string.Format("{0}/../Recordings/{1:000000}.png", Application.dataPath, frameCount);
+            System.IO.File.WriteAllBytes(filename, screenshot.EncodeToPNG());
+        }
     }
 }
