@@ -1,8 +1,11 @@
-﻿#pragma kernel CSMain
+﻿#pragma kernel ElementaryAutomaton
 
+uint _Generation;
 RWTexture2D<float4> _Result;
 
 [numthreads(8,8,1)]
-void CSMain (uint3 id : SV_DispatchThreadID) {
-    _Result[id.xy] = float4(id.x & id.y, (id.x & 15)/15.0, (id.y & 15)/15.0, 0.0);
+void ElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
+    uint2 texCoords = uint2(id.x, _Generation);
+
+    _Result[texCoords.xy] = 0.5f;
 }
