@@ -11,29 +11,39 @@ public class Automata : MonoBehaviour {
 
     private RenderTexture target;
     private int kernel, threadGroupsX, threadGroupsY, generation;
+    private int width, height;
     
     void Awake() {
         threadGroupsX = Mathf.CeilToInt(Screen.width / 8.0f);
         threadGroupsY = Mathf.CeilToInt(Screen.height / 8.0f);
-        generation = Screen.height - 2;
+        width = Screen.width;
+        height = Screen.height;
     }
 
     void OnEnable() {
         if (target == null) {
-            target = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
+            target = new RenderTexture(width, height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
             target.enableRandomWrite = true;
             target.Create();
 
-            automataCompute.SetInt("_Width", Screen.width);
-            automataCompute.SetInt("_Height", Screen.height);
+            automataCompute.SetInt("_Width", width);
+            automataCompute.SetInt("_Height", height);
         }
 
+        generation = height - 2;
         automataCompute.SetTexture(0, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
         automataCompute.SetFloat("_SeedChance", seedChance);
         automataCompute.SetInt("_RandSeed", Random.Range(2, 1000));
         automataCompute.Dispatch(0, threadGroupsX, 1, 1);
+    }
+
+    void OnDisable() {
+        if (target != null) {
+            target.Release();
+            target = null;
+        }
     }
 
     void Update() {
