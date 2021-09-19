@@ -5,6 +5,7 @@ using UnityEngine;
 public class Automata : MonoBehaviour {
     
     public ComputeShader automataCompute;
+    public bool randomSeed = false;
 
     private RenderTexture target;
     private int kernel, threadGroupsX, threadGroupsY, generation;
@@ -27,6 +28,7 @@ public class Automata : MonoBehaviour {
 
         automataCompute.SetTexture(0, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
+        automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
         automataCompute.Dispatch(0, threadGroupsX, 1, 1);
     }
 

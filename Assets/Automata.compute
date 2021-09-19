@@ -2,6 +2,7 @@
 #pragma kernel ElementaryAutomaton
 
 uint _Generation;
+uint _RandomSeed;
 uint _Width, _Height;
 RWTexture2D<float4> _Result;
 
