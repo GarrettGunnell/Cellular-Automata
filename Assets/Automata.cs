@@ -20,13 +20,20 @@ public class Automata : MonoBehaviour {
             target = new RenderTexture(Screen.width, Screen.height, 0, RenderTextureFormat.ARGBFloat, RenderTextureReadWrite.Linear);
             target.enableRandomWrite = true;
             target.Create();
+
+            automataCompute.SetInt("_Width", Screen.width);
+            automataCompute.SetInt("_Height", Screen.height);
         }
+
+        automataCompute.SetTexture(0, "_Result", target);
+        automataCompute.SetInt("_Generation", generation);
+        automataCompute.Dispatch(0, threadGroupsX, 1, 1);
     }
 
     void Update() {
-        automataCompute.SetTexture(0, "_Result", target);
+        automataCompute.SetTexture(1, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
-        automataCompute.Dispatch(0, threadGroupsX, threadGroupsY, 1);
+        automataCompute.Dispatch(1, threadGroupsX, 1, 1);
 
         if (generation > 0)
             generation--;

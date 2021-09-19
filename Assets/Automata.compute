@@ -1,11 +1,29 @@
-﻿#pragma kernel ElementaryAutomaton
+﻿#pragma kernel SeedElementaryAutomaton
+#pragma kernel ElementaryAutomaton
 
 uint _Generation;
+uint _Width, _Height;
 RWTexture2D<float4> _Result;
 
-[numthreads(8,8,1)]
+[numthreads(8,1,1)]
+void SeedElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
+    uint2 texCoords = uint2(id.x, _Height - 1);
+
+    _Result[texCoords.xy] = id.x == (_Width - 1) ? 1.0f : 0.0f;
+}
+
+[numthreads(8,1,1)]
 void ElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
     uint2 texCoords = uint2(id.x, _Generation);
+    uint previous = _Result[uint2(texCoords.x, texCoords.y + 1)];
+    uint left = _Result[uint2(texCoords.x - 1, texCoords.y + 1)];
+    uint right = _Result[uint2(texCoords.x + 1, texCoords.y + 1)];
+    uint result = 1;
 
-    _Result[texCoords.xy] = 0.5f;
+    if (left == previous && previous == right)
+        result = 0;
+    else if (left == 1 && previous == 0 && right == 0)
+        result = 0;
+
+    _Result[texCoords.xy] = result;
 }
