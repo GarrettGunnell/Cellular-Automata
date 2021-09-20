@@ -11,7 +11,8 @@ public class Automata : MonoBehaviour {
 
     public enum Automaton {
         Rule110 = 1,
-        BriansBrain = 3
+        BriansBrain = 3,
+        BelousovZhabotinsky = 5
     } public Automaton automaton;
 
     public bool capturing = false;
@@ -40,6 +41,7 @@ public class Automata : MonoBehaviour {
 
         generation = height - 2;
         timer = 0.0f;
+        frameCount = 0;
         automataCompute.SetTexture((int)automaton - 1, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
@@ -63,7 +65,7 @@ public class Automata : MonoBehaviour {
         automataCompute.SetTexture((int)automaton, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
 
-        if (timer > 0.01) {
+        if (timer > 0.03) {
             timer = 0;
             generation--;
             if (automaton == Automaton.Rule110)
