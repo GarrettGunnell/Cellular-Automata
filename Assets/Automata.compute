@@ -2,6 +2,8 @@
 
 #pragma kernel SeedElementaryAutomaton
 #pragma kernel ElementaryAutomaton
+#pragma kernel SeedBriansBrain
+#pragma kernel BriansBrain
 
 uint _Generation;
 int _RandSeed;
@@ -54,4 +56,40 @@ void ElementaryAutomaton(uint3 id : SV_DispatchThreadID) {
 
 
     _Result[texCoords.xy] = result;
+}
+
+[numthreads(8,8,1)]
+void SeedBriansBrain(uint3 id : SV_DispatchThreadID) {
+    initRand(_RandSeed + id.x * id.y);
+    initRand(_RandSeed * randValue() + id.x + id.y * randValue());
+    
+    _Result[id.xy] = randValue() < _SeedChance ? 1.0f : 0.0f;
+}
+
+[numthreads(8,8,1)]
+void BriansBrain(uint3 id : SV_DispatchThreadID) {
+    int x, y;
+    int sum = 0;
+
+    for (x = -1; x <= 1; ++x) {
+        for (y = -1; y <= 1; ++y) {
+            if (x == 0 && y == 0) continue;
+
+            if (_Result[id.xy + int2(x, y)].a == 1.0f)
+                sum += 1;
+        }
+    }
+
+    float4 result = 0.0f;
+    float4 self = _Result[id.xy];
+
+    if (self.a == 1.0f)
+        result = float4(0.0f, 0.0f, 1.0f, 0.5f);
+    else if (self.a == 0.5f)
+        result = 0.0f;
+    else if (sum == 2)
+        result = 1.0f;
+
+
+    _Result[id.xy] = result;
 }

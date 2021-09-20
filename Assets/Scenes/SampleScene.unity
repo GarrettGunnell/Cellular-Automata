@@ -218,3 +218,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   automataCompute: {fileID: 7200000, guid: 0d7a2990b6e202548994d5dcf34755f6, type: 3}
+  randomSeed: 1
+  seedChance: 0.042
+  automaton: 1
+  capturing: 0

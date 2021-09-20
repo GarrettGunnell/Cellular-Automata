@@ -9,6 +9,11 @@ public class Automata : MonoBehaviour {
     [Range(0.01f, 1.0f)]
     public float seedChance = 0.5f;
 
+    public enum Automaton {
+        Rule110 = 1,
+        BriansBrain = 3
+    } public Automaton automaton;
+
     public bool capturing = false;
 
     private RenderTexture target;
@@ -35,12 +40,16 @@ public class Automata : MonoBehaviour {
 
         generation = height - 2;
         timer = 0.0f;
-        automataCompute.SetTexture(0, "_Result", target);
+        automataCompute.SetTexture((int)automaton - 1, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
         automataCompute.SetFloat("_SeedChance", seedChance);
         automataCompute.SetInt("_RandSeed", Random.Range(2, 1000));
-        automataCompute.Dispatch(0, threadGroupsX, 1, 1);
+
+        if (automaton == Automaton.Rule110)
+            automataCompute.Dispatch((int)automaton - 1, threadGroupsX, 1, 1);
+        else
+            automataCompute.Dispatch((int)automaton - 1, threadGroupsX, threadGroupsY, 1);
     }
 
     void OnDisable() {
@@ -51,18 +60,19 @@ public class Automata : MonoBehaviour {
     }
 
     void Update() {
-        automataCompute.SetTexture(1, "_Result", target);
+        automataCompute.SetTexture((int)automaton, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
-        automataCompute.Dispatch(1, threadGroupsX, 1, 1);
 
-        if (timer > 0.01 && generation > 0) {
+        if (timer > 0.01) {
             timer = 0;
             generation--;
-            Capture();
+            if (automaton == Automaton.Rule110)
+                automataCompute.Dispatch((int)automaton, threadGroupsX, 1, 1);
+            else
+                automataCompute.Dispatch((int)automaton, threadGroupsX, threadGroupsY, 1);
         }
 
-        if (generation <= 0)
-            Capture();
+        Capture();
             
         if (timer > 1 && capturing) {
             capturing = false;
