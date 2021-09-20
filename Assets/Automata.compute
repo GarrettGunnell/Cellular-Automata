@@ -63,7 +63,10 @@ void SeedBriansBrain(uint3 id : SV_DispatchThreadID) {
     initRand(_RandSeed + id.x * id.y);
     initRand(_RandSeed * randValue() + id.x + id.y * randValue());
     
-    _Result[id.xy] = randValue() < _SeedChance ? 1.0f : 0.0f;
+    float3 deadColor = float3(0.922f, 0.91f, 0.875f);
+    float3 aliveColor = float3(0.247f, 0.212f, 0.149f);
+
+    _Result[id.xy] = randValue() < _SeedChance ? float4(aliveColor, 1.0f) : float4(deadColor.rgb, 0.0f);
 }
 
 [numthreads(8,8,1)]
@@ -80,16 +83,19 @@ void BriansBrain(uint3 id : SV_DispatchThreadID) {
         }
     }
 
-    float4 result = 0.0f;
     float4 self = _Result[id.xy];
 
-    if (self.a == 1.0f)
-        result = float4(0.0f, 0.0f, 1.0f, 0.5f);
-    else if (self.a == 0.5f)
-        result = 0.0f;
-    else if (sum == 2)
-        result = 1.0f;
+    float3 deadColor = float3(0.922f, 0.91f, 0.875f);
+    float3 dyingColor = float3(0.149f, 0.184f, 0.247f);
+    float3 aliveColor = float3(0.247f, 0.212f, 0.149f);
+    float4 result = float4(deadColor.rgb, 0.0f);
 
+    if (self.a == 1.0f)
+        result = float4(dyingColor.rgb, 0.5f);
+    else if (self.a == 0.5f)
+        result = float4(deadColor.rgb, 0.0f);
+    else if (sum == 2)
+        result = float4(aliveColor.rgb, 1.0f);
 
     _Result[id.xy] = result;
 }
