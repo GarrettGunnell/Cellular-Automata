@@ -12,6 +12,9 @@ int _RandSeed;
 float _SeedChance;
 uint _RandomSeed;
 uint _Width, _Height;
+int _V;
+float _K1, _K2, _G;
+
 RWTexture2D<float4> _Result;
 
 [numthreads(8,1,1)]
@@ -105,7 +108,7 @@ void BriansBrain(uint3 id : SV_DispatchThreadID) {
 [numthreads(8,8,1)]
 void SeedBelousov(uint3 id : SV_DispatchThreadID) {
     initRand(_RandSeed + id.x * id.y);
-    initRand(_RandSeed * randValue() + id.x + id.y * randValue());
+    initRand(_RandSeed * randValue() + id.x * randValue() + id.y * randValue());
 
     _Result[id.xy] = randValue() < _SeedChance ? 1.0f : 0.0f;
 }
@@ -117,14 +120,12 @@ void BelousovZhabotinsky(uint3 id : SV_DispatchThreadID) {
     float ill = 0.0f;
     float infected = 0.0f;
 
-    float V = 100.0f;
-
     for (x = -1; x <= 1; ++x) {
         for (y = -1; y <= 1; ++y) {
             if (x == 0 && y == 0) continue;
             float neighbor = _Result[id.xy + int2(x, y)].a;
 
-            if (neighbor >= V)
+            if (neighbor >= _V)
                 ill += 1;
             else if (neighbor != 0.0f)
                 infected += 1;
@@ -137,19 +138,15 @@ void BelousovZhabotinsky(uint3 id : SV_DispatchThreadID) {
     float4 self = _Result[id.xy];
     sum += self.a;
 
-    float k1 = 1.0f;
-    float k2 = 4.0f;
-    int g = 12.0f;
-
-    if (self.a >= V) {
+    if (self.a >= _V) {
         result = 0.0f;
     } else if (self.a > 0.0f) {
-        result = min((trunc(sum / (infected + ill + 1)) + g), V);
+        result = min((trunc(sum / (infected + ill + 1)) + _G), _V);
     } else {
-        result = (trunc(infected / k1) + trunc(ill / k2));
+        result = (trunc(infected / _K1) + trunc(ill / _K2));
     }
 
-    float3 color = result.a / V;
+    float3 color = result.a / _V;
 
     _Result[id.xy] = float4(color, result.a);
 }

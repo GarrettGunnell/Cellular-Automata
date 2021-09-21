@@ -8,12 +8,25 @@ public class Automata : MonoBehaviour {
     public bool randomSeed = false;
     [Range(0.01f, 1.0f)]
     public float seedChance = 0.5f;
+    public bool bake = false;
 
     public enum Automaton {
         Rule110 = 1,
         BriansBrain = 3,
         BelousovZhabotinsky = 5
     } public Automaton automaton;
+
+    [Range(1, 500)]
+    public uint V = 100;
+
+    [Range(0.1f, 10.0f)]
+    public float k1 = 1.0f;
+
+    [Range(0.1f, 10.0f)]
+    public float k2 = 1.0f;
+
+    [Range(0.1f, 100.0f)]
+    public float g = 1.0f;
 
     public bool capturing = false;
 
@@ -43,15 +56,26 @@ public class Automata : MonoBehaviour {
         timer = 0.0f;
         frameCount = 0;
         automataCompute.SetTexture((int)automaton - 1, "_Result", target);
+        automataCompute.SetTexture((int)automaton, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
         automataCompute.SetInt("_RandomSeed", randomSeed ? 1 : 0);
         automataCompute.SetFloat("_SeedChance", seedChance);
         automataCompute.SetInt("_RandSeed", Random.Range(2, 1000));
 
+        automataCompute.SetInt("_V", (int)V);
+        automataCompute.SetFloat("_K1", k1);
+        automataCompute.SetFloat("_K2", k2);
+        automataCompute.SetFloat("_G", g);
+
         if (automaton == Automaton.Rule110)
             automataCompute.Dispatch((int)automaton - 1, threadGroupsX, 1, 1);
         else
             automataCompute.Dispatch((int)automaton - 1, threadGroupsX, threadGroupsY, 1);
+
+        if (bake) {
+            for (int i = 0; i < 3000; ++i)
+                automataCompute.Dispatch((int)automaton, threadGroupsX, threadGroupsY, 1);
+        }
     }
 
     void OnDisable() {
@@ -65,7 +89,7 @@ public class Automata : MonoBehaviour {
         automataCompute.SetTexture((int)automaton, "_Result", target);
         automataCompute.SetInt("_Generation", generation);
 
-        if (timer > 0.03) {
+        if (timer > 0.04) {
             timer = 0;
             generation--;
             if (automaton == Automaton.Rule110)
