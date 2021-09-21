@@ -110,7 +110,7 @@ void SeedBelousov(uint3 id : SV_DispatchThreadID) {
     initRand(_RandSeed + id.x * id.y);
     initRand(_RandSeed * randValue() + id.x * randValue() + id.y * randValue());
 
-    _Result[id.xy] = randValue() < _SeedChance ? 1.0f : 0.0f;
+    _Result[id.xy] = randValue() < _SeedChance ? _V : float4(0.176f, 0.176f, 0.176f, 0.0f);
 }
 
 [numthreads(8,8,1)]
@@ -134,7 +134,14 @@ void BelousovZhabotinsky(uint3 id : SV_DispatchThreadID) {
         }
     }
 
-    float4 result = 0.0f;
+    float3 black = 0.176f;
+    float3 lblue = float3(0.545f, 0.635f, 0.69f);
+    float3 mblue = float3(0.298f, 0.435f, 0.561f);
+    float3 dblue = float3(0.192f, 0.223f, 0.298f);
+    float3 yellow1 = float3(0.953f, 0.863f, 0.549f);
+    float3 yellow2 = float3(0.976f, 0.698f, 0.1334f);
+
+    float result = 0.0f;
     float4 self = _Result[id.xy];
     sum += self.a;
 
@@ -146,7 +153,14 @@ void BelousovZhabotinsky(uint3 id : SV_DispatchThreadID) {
         result = (trunc(infected / _K1) + trunc(ill / _K2));
     }
 
-    float3 color = result.a / _V;
+    float t = result / _V;
+    float3 color;
+    if (t >= 0.98f)
+        color = lerp(yellow2, yellow1, t);
+    else
+        color = lerp(lblue, dblue, t);
 
-    _Result[id.xy] = float4(color, result.a);
+    color = pow(color, 1.2);
+
+    _Result[id.xy] = float4(color, result);
 }
