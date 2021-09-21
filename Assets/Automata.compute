@@ -6,6 +6,8 @@
 #pragma kernel BriansBrain
 #pragma kernel SeedBelousov
 #pragma kernel BelousovZhabotinsky
+#pragma kernel SeedSeeds
+#pragma kernel Seeds
 
 uint _Generation;
 int _RandSeed;
@@ -160,7 +162,35 @@ void BelousovZhabotinsky(uint3 id : SV_DispatchThreadID) {
     else
         color = lerp(lblue, dblue, t);
 
-    color = pow(color, 1.2);
+    color = pow(abs(color), 1.2);
 
     _Result[id.xy] = float4(color, result);
+}
+
+
+[numthreads(8,8,1)]
+void SeedSeeds(uint3 id : SV_DispatchThreadID) {
+    initRand(_RandSeed + id.x * id.y);
+    initRand(_RandSeed * randValue() + id.x * randValue() + id.y * randValue());
+
+    _Result[id.xy] = randValue() < _SeedChance ? 1.0f : 0.0f;
+}
+
+[numthreads(8,8,1)]
+void Seeds(uint3 id : SV_DispatchThreadID) {
+    int x, y;
+    int sum = 0;
+
+    for (x = -1; x <= 1; ++x) {
+        for (y = -1; y <= 1; ++y) {
+            if (x == 0 && y == 0) continue;
+
+            if (_Result[id.xy + int2(x, y)].a == 1.0f)
+                sum += 1;
+        }
+    }
+
+    float4 self = _Result[id.xy];
+
+    _Result[id.xy] = (self.a == 0.0f && sum == 2) ? 1.0f : 0.0f;
 }

@@ -13,7 +13,8 @@ public class Automata : MonoBehaviour {
     public enum Automaton {
         Rule110 = 1,
         BriansBrain = 3,
-        BelousovZhabotinsky = 5
+        BelousovZhabotinsky = 5,
+        Seeds = 7
     } public Automaton automaton;
 
     [Range(1, 500)]
